@@ -106,57 +106,20 @@ chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
       console.log("Course code found from tab ID: " + courseCode);
     }
     
-    // Try to get resource info from referrer URL
+    // Try to get resource info using referrer and item URL
     if (item.referrer) {
-      try {
-        const referrerUrl = new URL(item.referrer);
-        console.log("Trying to find resource info for referrer: " + referrerUrl.href);
-        
-        // Check for exact resource match
-        for (let pageUrl in resourcesByUrl) {
-          const resources = resourcesByUrl[pageUrl].resources;
-          console.log("Checking page URL: " + pageUrl);
-          console.log("Available resources for this page: ", resources);
-          
-          if (resources[referrerUrl.href]) {
-            const resource = resources[referrerUrl.href];
-            resourceName = resource.instanceName;
-            if (!courseCode && resource.courseCode) {
-              courseCode = resource.courseCode;
-            }
-            console.log("Resource info found from referrer URL: " + referrerUrl.href);
-            console.log("Resource name: " + resourceName);
-            break;
+      console.log("Looking up resources for referrer: " + item.referrer);
+      const pageResources = resourcesByUrl[item.referrer];
+      if (pageResources) {
+        const resources = pageResources.resources;
+        const resource = resources[item.url];
+        if (resource) {
+          resourceName = resource.instanceName;
+          if (!courseCode && resource.courseCode) {
+            courseCode = resource.courseCode;
           }
-        }
-      } catch (e) {
-        console.log("Could not parse referrer URL: " + item.referrer);
-      }
-    }
-    
-    // If not found, try to get from referrer URL pattern matching
-    if ((!courseCode || !resourceName) && item.referrer) {
-      console.log("Trying pattern matching for resource info");
-      for (let storedUrl in resourcesByUrl) {
-        if (item.referrer.startsWith(storedUrl)) {
-          const resources = resourcesByUrl[storedUrl].resources;
-          console.log("Found matching stored URL: " + storedUrl);
-          console.log("Available resources for this URL: ", resources);
-          
-          // Look for matching resource
-          for (let resourceUrl in resources) {
-            if (item.referrer === resourceUrl) {
-              const resource = resources[resourceUrl];
-              resourceName = resource.instanceName;
-              if (!courseCode && resource.courseCode) {
-                courseCode = resource.courseCode;
-              }
-              console.log("Resource info found from stored URL pattern match: " + resourceUrl);
-              console.log("Resource name: " + resourceName);
-              break;
-            }
-          }
-          if (resourceName) break;
+          console.log("Resource info found for item URL: " + item.url);
+          console.log("Resource name: " + resourceName);
         }
       }
     }
