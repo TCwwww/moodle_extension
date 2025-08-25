@@ -60,15 +60,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         console.log("Course code stored for URL: " + url);
       }
       
-      // Store resource information
-      if (msg.resources && url) {
-        resourcesByUrl[url] = {
-          resources: msg.resources,
-          timestamp: Date.now()
-        };
-        
-        console.log("Resources stored for URL: " + url);
-        console.log("Resource count: " + Object.keys(msg.resources).length);
+      // Store resource information for each link directly
+      if (msg.resources) {
+        const now = Date.now();
+        let count = 0;
+        for (let resourceUrl in msg.resources) {
+          const info = msg.resources[resourceUrl];
+          resourcesByUrl[resourceUrl] = {
+            instanceName: info.instanceName,
+            courseCode: info.courseCode,
+            timestamp: now
+          };
+          count++;
+        }
+
+        console.log("Resources stored for links: " + count);
       }
       
       // Send a response to prevent errors
@@ -106,21 +112,30 @@ chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
       console.log("Course code found from tab ID: " + courseCode);
     }
     
-    // Try to get resource info using referrer and item URL
+    // Try to get resource info using referrer first
     if (item.referrer) {
-      console.log("Looking up resources for referrer: " + item.referrer);
-      const pageResources = resourcesByUrl[item.referrer];
-      if (pageResources) {
-        const resources = pageResources.resources;
-        const resource = resources[item.url];
-        if (resource) {
-          resourceName = resource.instanceName;
-          if (!courseCode && resource.courseCode) {
-            courseCode = resource.courseCode;
-          }
-          console.log("Resource info found for item URL: " + item.url);
-          console.log("Resource name: " + resourceName);
+      console.log("Looking up resource for referrer: " + item.referrer);
+      const resourceInfo = resourcesByUrl[item.referrer];
+      if (resourceInfo) {
+        resourceName = resourceInfo.instanceName;
+        if (!courseCode && resourceInfo.courseCode) {
+          courseCode = resourceInfo.courseCode;
         }
+        console.log("Resource info found for referrer: " + item.referrer);
+        console.log("Resource name: " + resourceName);
+      }
+    }
+
+    // If not found by referrer, try direct URL match
+    if (!resourceName) {
+      const resourceInfo = resourcesByUrl[item.url];
+      if (resourceInfo) {
+        resourceName = resourceInfo.instanceName;
+        if (!courseCode && resourceInfo.courseCode) {
+          courseCode = resourceInfo.courseCode;
+        }
+        console.log("Resource info found for item URL: " + item.url);
+        console.log("Resource name: " + resourceName);
       }
     }
     
