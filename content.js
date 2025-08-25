@@ -1,3 +1,6 @@
+// Content script injected into Moodle pages.
+// Collects course codes and resource names and forwards them to the background script.
+
 (function() {
     console.log("Content script loaded");
     

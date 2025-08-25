@@ -1,79 +1,39 @@
 # Moodle Download Renamer
 
-A Chromium extension that automatically prefixes downloaded files from Moodle with the course code and resource name.
+A Chromium extension that automatically prefixes files downloaded from Moodle with the corresponding course code and resource name.
 
 ## Features
-
-- Automatically detects course codes from Moodle page titles (HTML `<title>` tag)
+- Detects course codes from the page title
 - Extracts resource names from Moodle activity instances
-- Renames downloaded files to include both course code and resource name
-- Works specifically with https://moodle.hku.hk
-- Clean, conflict-free file naming
-- Prevents duplicate prefixes (intelligent renaming)
-- Fallback handling for edge cases
+- Renames downloads to include both pieces of information
+- Works exclusively with https://moodle.hku.hk
+- Prevents duplicate prefixes and sanitizes filenames
 
-## How It Works
-
-1. When you visit a Moodle course page, the extension extracts:
-   - The course code from the HTML title tag (e.g., "CIVL1113")
-   - Resource names from activity instances (e.g., "ComplexTrussTextbookExample")
-2. When you download a file from Moodle, the extension intercepts the download
-3. The downloaded file is automatically renamed to include both the course code and resource name
-
-### Example
-
-Before: `document.pdf`
-After: `CIVL2112 ComplexTrussTextbookExample document.pdf`
-
-If the file already contains the course code: `CIVL2112 lecture1.pdf`
-After: `CIVL2112 lecture1.pdf` (no change, prevents duplication)
+## How it works
+1. **Content script** (`content.js`) runs on Moodle pages and gathers the course code and resource names.
+2. It sends this information to the **background script** (`background.js`).
+3. When a file is downloaded, the background script renames it using the stored course code and resource name.
 
 ## Installation
-
-1. Clone or download this repository
-2. Open Chrome/Chromium and navigate to `chrome://extensions`
-3. Enable "Developer mode" in the top right corner
-4. Click "Load unpacked" and select the extension directory
-5. The extension will be active when visiting Moodle
-
-## Permissions
-
-- `downloads`: To intercept and rename downloaded files
-- `storage`: To temporarily store course codes and resource information
-- `https://moodle.hku.hk/*`: To access Moodle course pages
-
-## Technical Details
-
-The extension consists of:
-
-1. **Content Script** (`content.js`): Extracts course codes and resource information from the HTML title and activity instances
-2. **Background Script** (`background.js`): Intercepts downloads and renames files intelligently using both course codes and resource names
-3. **Manifest** (`manifest.json`): Configuration and permissions
+1. Clone or download this repository.
+2. In Chrome/Chromium, open `chrome://extensions`.
+3. Enable *Developer mode*.
+4. Choose *Load unpacked* and select this directory.
 
 ## Debugging
+If renaming doesn't work:
+1. Open DevTools on a Moodle page and check the console.
+2. Inspect the service worker from `chrome://extensions` for background messages.
 
-If you're experiencing issues with the renaming:
+## Permissions
+- `downloads`: rename files as they are saved
+- `storage`: temporarily store course and resource info
+- `https://moodle.hku.hk/*`: access Moodle content
 
-1. Open Chrome DevTools (F12) on a Moodle page
-2. Check the console for messages about course code and resource extraction
-3. When downloading a file, check the background script console for messages
-
-To access the background script console:
-1. Go to `chrome://extensions`
-2. Enable "Developer mode"
-3. Find "Moodle Download Renamer" and click "Inspect views: service worker"
-
-## Supported Platforms
-
-- Chrome
-- Chromium
-- Edge (Chromium-based)
-- Brave
-- Other Chromium-based browsers
+## Supported browsers
+Chrome, Chromium, Edge, Brave, and other Chromium-based browsers.
 
 ## Limitations
-
-- Only works with https://moodle.hku.hk
-- Requires JavaScript to be enabled
-- Course codes must be in the title tag in a format similar to 2-6 uppercase letters followed by 3-4 digits
-- Resource names are extracted from elements with the "instancename" class# moodle_extension
+- Only supports `moodle.hku.hk`.
+- Course code must appear in the page title.
+- Resource names are extracted from elements with the `instancename` class.
