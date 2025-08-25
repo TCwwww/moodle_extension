@@ -1,3 +1,7 @@
+// Background script for the Moodle Download Renamer extension.
+// Receives course and resource information from content scripts and
+// renames Moodle downloads using that data.
+
 // Store course codes with timestamps for cleanup
 let courseCodesByTab = {};
 let courseCodesByUrl = {};
@@ -83,7 +87,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-// When a download starts
+
+// Main listener: triggered whenever Chrome is about to save a file.
+// We inspect the download and rewrite the filename if it comes from Moodle.
 chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
   console.log("Download listener triggered for item: ", item);
   
