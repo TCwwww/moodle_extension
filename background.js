@@ -155,17 +155,20 @@ chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
 
     // If we have a course code, use it as prefix
     if (courseCode) {
-      // Clean original filename
+      // Clean original filename and extract extension
       let originalName = item.filename.split("/").pop();
+      const extensionIndex = originalName.lastIndexOf(".");
+      const extension = extensionIndex !== -1 ? originalName.substring(extensionIndex) : "";
       originalName = originalName.replace(/_/g, " ").trim();
 
-      // If we have a resource name, use it as part of the filename
+      // If we have a resource name, construct filename from course code and resource name
       if (resourceName) {
         // Clean resource name
         resourceName = resourceName.replace(/[\\/:*?"<>|]+/g, "").trim();
-        
-        // Create new filename with both course code and resource name
-        const newFilename = `${courseCode} ${resourceName} ${originalName}`;
+
+        // Create new filename with course code, resource name and original extension
+        let newFilename = `${courseCode} ${resourceName}${extension}`;
+        newFilename = newFilename.replace(/[\\/:*?"<>|]+/g, "");
         console.log("Renaming file to: " + newFilename);
         suggest({ filename: newFilename, conflictAction: "uniquify" });
         return;
